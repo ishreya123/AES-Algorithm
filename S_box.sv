@@ -2,7 +2,7 @@ module S_box (a_key,c_key);
 	input [7:0] a_key;
 	output reg [7:0] c_key; 
 	
-always_comb begin : 
+always_comb begin : s_boxlogic
 	case (a_key)
 
 	    8'h00: c_key=8'h63;
@@ -207,7 +207,7 @@ always_comb begin :
 		8'hc7: c_key=8'hc6;
 		8'hc8: c_key=8'he8;
 		8'hc9: c_key=8'hdd;
-	   	8'hca: c_key=8'h74;
+		8'hca: c_key=8'h74;
 		8'hcb: c_key=8'h1f;
 		8'hcc: c_key=8'h4b;
 		8'hcd: c_key=8'hbd;
