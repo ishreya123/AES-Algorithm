@@ -47,5 +47,4 @@ module key_expansion (num_round, input_key, output_key);
     	endcase
     	end
 	endfunction
-
 endmodule : key_expansion
