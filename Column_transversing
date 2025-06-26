@@ -1,0 +1,12 @@
+logic [127:0] input_data;
+// Fill input_data with your 128-bit input before this step
+
+int idx = 127;
+for (int col = 0; col < 4; col++) begin
+  for (int row = 0; row < 4; row++) begin
+    matrix[row][col].val1 = input_data[idx -: 4];
+    idx -= 4;
+    matrix[row][col].val2 = input_data[idx -: 4];
+    idx -= 4;
+  end
+end
