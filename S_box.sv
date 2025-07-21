@@ -1,3 +1,18 @@
+//////////////////////////////////////////////////////////////////////////////////
+//
+// Create Date: 13.06.2025 
+// Design Name: S_box
+// Module Name: S_box.sv
+// Project Name: AES Encryption
+// Target Devices: Zed Board
+// Tool Versions: Vivado 2019.1
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision: v0.01
+//////////////////////////////////////////////////////////////////////////////////
+
 module S_box (a_key,c_key);
 	input [7:0] a_key;
 	output reg [7:0] c_key; 
