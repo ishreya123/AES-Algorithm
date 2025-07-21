@@ -30,45 +30,42 @@ Outputs
 - Load:  A 1 bit signal that indicates data is being received by the deivce.
 - Ready: A 1 bit signal that indicates that the encryption process is finished and data is ready at the output.
 - State_byte_out: 8 bits signal contains the encrypted data sent byte by byte every cycle.
-### SUB BYTES
-Each byte is replaced by a byte from the previously generated S-Box.
-### KEY EXPANSION
-The key expansion function takes the user supplied 16 bytes long key and utilizes round constant matrix rcon and the substitution table s_box to generate the next key to be used in the next cycle of encryption.
-### ADD ROUND KEY
-A bitwise xor of the state matrix and the cycle’s round key matrix.
-### SHIFT ROWS
-Each row is rotated to the left. The second row is rotated once, second row twice and third row three times.
-![shfitrows](docs/shfitrows.png)
-### MIX COLUMNS 
-In this step we compute the new state matrix by left-multiplying the current state matrix by the polynomial matrix P.
-### CONNECTING ALL TOGETHER [TOP MODULE]
-So to connect all together in the Encryption process, in which every module is instantiated with its inputs and outputs, a certain register for state input and another one for state output, the enable signal is driven by an enable register different from other modules, and the done signal is connected to a wire which then manages the state in the processing FSMs
+### Sub Bytes
+In this step, every byte in the state matrix is substituted with a new value from a special lookup table called the S-Box. This introduces confusion and helps make the encryption more secure.
 
-Two FSMs - Finite State machines- were created to make all this happen.
-The first FSM manages the inputs and outputs of the whole device, it first waits for the enable signal to arrive then go to the next state of receiving the cipher data and the key byte by byte every cycle, then it turns to the next state, the processing state which waits for the other FSM to send a finish flag, After the finish flag is set it then turn to the last state in which it sets the ready signal then sends the output encrypted text byte by byte.
-![FSM 1](docs/fsm1.png)
+### Key Expansion
+The original 16-byte key provided by the user isn’t enough on its own—AES needs a new “round key” for each stage of encryption. The key expansion function cleverly combines the key, a set of round constants (rcon), and the S-Box to generate a unique key for every cycle of the process.
 
-The second FSM is the processing FSM, it waits for the data loading to finish then it starts the first step of the encryption, every step/operation is a FSM state, when the operation is due it sets the enable signal of the module then waits for the done signal to move to the next state and so on, till it finishes the cycles of the encryption, after that it sets the finish flag and moves to the starting state, state0.
-![FSM 2](docs/fsm2.png)
+### Add Round Key
+Here, the state matrix (which holds our data) is combined with the current round’s key matrix. This is done using a simple yet powerful bitwise XOR operation, ensuring the encryption is closely tied to the key.
 
+### Shift Rows
+To further scramble the data, each row of the state matrix is shifted to the left. The first row stays as is, the second row moves one position, the third row moves two, and the fourth row moves three positions. This helps spread the information across the matrix.
+
+### Mix Columns
+Finally, the columns of the state matrix are mixed together by multiplying them with a fixed “polynomial” matrix (denoted as P). This step blends the bytes in each column, making it even harder to break the encryption.
 
 ## Test Bench
-### OVERVIEW
-Tests were made to trace the data flow, check the synchronization of the system and determine the time of the whole process.
+
 ### PROCESS
 After instantiating the top module, a clock is generated and set as an input to the module, then we wait for 1 time unit, calling a reset function, after 5 time units it sets the reset signal to zero then trigger a reset done event. 
 
 After the reset done event is triggered the enable signal is set, then the testing inputs – state and key – are sent to the module byte by byte every positive clock edge of the cycle.
 
 After that we wait for a number of cycles then stop the test.
-Using Modelsim software we analyze the inputs and the outputs of every process’ step, and compare them with the expected values.
+Using Questasim software we analyze the inputs and the outputs of every process’ step, and compare them with the expected values.
 
 
 ## UVM
 ### INTRODUCTION
-The Universal Verification Methodology (UVM) is a standardized methodology for verifying integrated circuit designs. UVM is derived mainly from the OVM (Open Verification Methodology) which was, to a large part, based on the eRM (e Reuse Methodology) for the e Verification Language developed by Verisity Design in 2001.
-### OVERVIEW
-A system Verilog Class was create to estimate the output value of the DUT, it takes the inputs – state and key – of the DUT and produce an expected output to be compared with the DUT’s output.
+After setting up the design by instantiating the top module, a clock signal is generated and fed into the module to drive its operations. We start by waiting briefly, then activate a reset sequence to make sure everything begins from a known state. After a short pause, the reset signal is deactivated and a “reset done” event is triggered—letting the system know it’s safe to move on.
+
+Once the reset is complete, the enable signal is activated, and we begin feeding in our test inputs. The state (plaintext) and key values are sent into the module one byte at a time, precisely synchronized with each rising edge of the clock.
+
+After supplying all the test inputs, we allow the design to run for several clock cycles to complete the encryption process, and then stop the test.
+
+Throughout this process, we use Questasim software to closely monitor and analyze both the inputs and outputs at each stage. By comparing these results to the expected values, we can verify that each part of the AES encryption is performing correctly.
+
 ### PROCESS
 The main DUT is instantiated inside the UVM tb top module and connected to the UVM’s interface. 
 
@@ -77,25 +74,37 @@ The driver then – Using a FSM - asks the sequencer to generate random inputs a
 In the Monitor there are two class, one for the output and the other one for predicting it. The first one waits for the ready signal, and it then gets the output of the DUT using the interface and stores it in a transaction class object.
 
 The other one get the input that goes to the DUT through the interface and it sends the inputs to the prediction class, and saves its output in a transaction class object.
-In the scoreboard a compare function is called upon getting the outputs and it compares them, then display the test state – success or fail - . 
-![uvm](docs/uvm.png)
-### AES SEQUENCER
-A uvm transaction class is created that holds the arbitrar values of the inputs and outputs and the enable, reset signals, these values are set as random values that gets generated and sent to the driver every new sequence in the uvm sequencer class.
-### AES DRIVER
-The driver class consists mainly of a FSM that drives the input signals and requests a new random values from the sequencer every time it finishes its current process.
+In the scoreboard a compare function is called upon getting the outputs and it compares them, then display the test state – success or fail. 
 
-The FSM first starts with requesting a new values at the first state, then it sends the state and the key byte by byte in the second state, then waits for the ready signal, then waits for the output signal to be sent, finally it returns to the first state and repeat the cycle.
-### AES MONITOR
-The monitor consists of two classes, one for the DUT called monitor before, and the other for the prediction class called monitor after.
+![uvm](Docs/Testbench_Block_Diagram.png)
 
-The first one –monitor before- waits for the ready signal then stores the output encrypted data from the DUT in a transaction object, then this monitor is send through the analysis port to the subscribers - scoreboard-. 
+### AES Sequencer
+The sequencer plays the role of a conductor, managing the flow of data through the testbench. Here, a UVM transaction class is crafted to bundle together all the necessary input and output values, along with the enable and reset signals. These values are randomly generated each time a new sequence starts, keeping tests fresh and ensuring comprehensive verification coverage. The sequencer hands these transactions off to the driver whenever they are needed for testing.
 
-The other one –monitor after- waits for the enable signal to start getting the inputs from the interface, it then stores it in another transaction object, and sends it to the prediction class, which in turn sends the predicted output, which is send through the analysis port to the subscribers - scoreboard-. 
-### AES SCOREBOARD
-The scoreboard is a class that contains the checkers and verifies that the DUT is working as wanted, it takes the monitors’ outputs through the analysis port, and compare them, then sends the results using the uvm_info macro. 
-### DO FILE
-The `run.do` file automates the simulation process, it first compiles all the Verilog files, then compiles uvm related file, finally it runs the simulation with certain parameters including the test name.
+### AES Driver
+The driver is responsible for actually delivering the test vectors to the AES design, much like a courier. Internally, it uses a Finite State Machine (FSM) to stay organized:
 
+First, it requests new values from the sequencer.
 
+Next, it sends the state and key, byte by byte, into the DUT (Device Under Test).
 
+Then, it waits patiently for the ready signal before moving on to gather the encrypted output.
 
+When data has been sent and the output is ready, it cycles back to the beginning and starts the process again.
+
+This systematic approach ensures that every scenario gets a thorough check.
+
+### AES Monitor
+The monitor is split into two parts, each with a specific role:
+
+“Monitor Before” keeps an eye on the outputs from the DUT. Once the DUT indicates it’s ready, this monitor captures the encrypted data and neatly packages it in a transaction object. It then shares this data with the rest of the testbench using the analysis port.
+
+“Monitor After” focuses on the input side, waiting for the enable signal to collect the test inputs. These inputs are sent to a prediction class, which calculates the expected outputs. These predicted results are also made available to the rest of the testbench for comparison.
+
+This dual monitoring setup ensures that both the real and expected behaviors are checked closely.
+
+### AES Scoreboard
+The scoreboard pulls everything together. Acting as the “referee” of the testbench, it takes data from both monitors and compares the outputs of the DUT with the expected results from the prediction class. Using UVM’s reporting, it logs whether the AES design behaves as intended and highlights any discrepancies.
+
+### Run.do File
+The run.do file is your simulation script. It compiles all the SystemVerilog source files, links in the UVM files, and launches the simulation with the correct settings and test names. This automation ensures that simulations run consistently.
