@@ -18,8 +18,8 @@
 
 
 module Shift_rows (
-	input [127:0] in,
-	output [127:0] shifted
+	input [0:127] in,
+	output [0:127] shifted
 	);
 
 //First row not shifted
