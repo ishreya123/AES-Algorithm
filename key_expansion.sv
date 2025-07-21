@@ -1,3 +1,22 @@
+//////////////////////////////////////////////////////////////////////////////////
+// 
+// Create Date: 15.06.2025 
+// Design Name: Key_expansion
+// Module Name: Key_expansion.sv
+// Project Name: AES ENCRYPTION
+// Target Devices: ZED bord
+// Tool Versions: 2019.1
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
 module key_expansion (num_round, input_key, output_key);
 	input [3:0] num_round;
 	input [127:0] input_key;
@@ -47,4 +66,5 @@ module key_expansion (num_round, input_key, output_key);
     	endcase
     	end
 	endfunction
+
 endmodule : key_expansion
