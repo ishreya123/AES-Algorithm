@@ -17,7 +17,8 @@ The encryption consists of several transformation steps, each designed to protec
 5. Mix Columns – Mixes the data within each column to enhance diffusion.
 
 Each step is realized as an individual, synthesizable System Verilog module in this project. These modules are linked together and orchestrated by a Finite State Machine (FSM), ensuring data flows smoothly and securely through every stage of encryption, ultimately producing the final encrypted cipher.
-![Encryption rounds](Docs/Block diagrm AES.png)
+
+![Encryption rounds](Docs/Block_diagram_AES.png)
 ### INPUTS AND OUTPUTS
 For the Encryption device we have five inputs and three outputs as follows:
 #### Inputs 
