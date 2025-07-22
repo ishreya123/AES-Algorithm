@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module AddRoundKey (data_in, data_out, key);
+module AddRoundKey (data_in, key, data_out);
 	input logic [127:0] data_in;
 	input logic [127:0] key;
 	output logic [127:0] data_out;
