@@ -32,6 +32,6 @@ wire [127:0] after_addRoundKey;
 Sub_bytes sub(in, after_subBytes);
 Shift_rows shift(after_subBytes,after_shiftRows);
 Mix_columns mix(after_shiftRows, after_mixColumns);
-Add_RoundKey ark(after_mixColumns,out,key);
+Add_RoundKey ark(after_mixColumns,key,out);
 
 endmodule
