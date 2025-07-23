@@ -21,17 +21,20 @@
 
 
 module encrypt_round(in,key,out);
-input [127:0]in;
-output [127:0]out;
-input [127:0] key;
-wire [127:0] after_subBytes;
-wire [127:0] after_shiftRows;
-wire [127:0] after_mixColumns;
-wire [127:0] after_addRoundKey;
+input [0:127]in;
+output [0:127]out;
+input [0:127] key;
 
-Sub_bytes sub(in, after_subBytes);
+wire [0:127] after_subBytes;
+wire [0:127] after_shiftRows;
+wire [0:127] after_mixColumns;
+wire [0:127] after_addRoundKey;
+
+
+SubBytes sub(in, after_subBytes);
 Shift_rows shift(after_subBytes,after_shiftRows);
-Mix_columns mix(after_shiftRows, after_mixColumns);
-Add_RoundKey ark(after_mixColumns,key,out);
+mix_columns mix(after_shiftRows, after_mixColumns);
+AddRoundKey ark(after_mixColumns,key,out);
 
 endmodule
+
