@@ -57,14 +57,15 @@ end
 
 
 
-function [0:31] rotword;
+function [0:31] rotword; //rotate word
 input [0:31] x;
 begin
 		rotword={x[8:31],x[0:7]};
 end
 endfunction
 
-function [0:31] subwordx;
+//Substitute values using S-box
+function [0:31] subwordx;  
 input [0:31] a;
 begin
 subwordx[0:7]=c(a[0:7]);
@@ -338,7 +339,7 @@ end
 endfunction
 
 
-function[0:31] rconx;
+function[0:31] rconx; //round constant
 input [0:31] r; 
 begin
  case(r)
