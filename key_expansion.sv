@@ -18,7 +18,7 @@
 
 module key_expansion #(parameter nk=4,parameter nr=10)(key,w);
 // The first [(nk*32)-1 ]-bit key that we use to generate the rest of the keys of the other rounds.
-// [(nk*32)-1 ] is the key length (128-bit key, 192-bit key or 256-bit key for nK=4,6 or 8 respectively).
+// [(nk*32)-1 ] is the key length (128-bit key for nK=4).
 input [0 : (nk * 32) - 1] key;  
 // w represents the array that will store all the generated keys of all rounds.
 /* [(128 * (nr + 1)) - 1] this formula is meant to calculate the length of W ; so that it can store all the
@@ -26,9 +26,9 @@ generated keys of all rounds.*/
 output reg [0 : (128 * (nr + 1)) - 1] w;
 reg [0:31] temp;
 reg [0:31] r;
-reg [0:31] rot; // It stores the returned value from the function rotword().
-reg [0:31] x;	//It stores the returned value from the function subwordx().
-reg [0:31] rconv; //It stores the returned value from the function rconx().
+reg [0:31] rot; // rotword
+reg [0:31] x;	//subwordx
+reg [0:31] rconv; //rconx
 reg [0:31] new1;
 
 integer i;
@@ -39,9 +39,9 @@ always@* begin
 	for(i = nk; i < 4*(nr + 1); i = i + 1) begin
 	temp = w[(128 * (nr + 1) - 32) +: 32];
 	if(i % nk == 0) begin
-		rot = rotword(temp); // A call to the function rotword() is done and the returned value is stored in rot.
-		x = subwordx (rot);	//A call to the function subwordx() is done and the returned value is stored in x.
-		rconv = rconx (i/nk); //A call to the function rconx() is done and the returned value is stored in rconv.
+		rot = rotword(temp); // call to the function rotword
+		x = subwordx (rot);	// call to the function subwordx
+		rconv = rconx (i/nk); // call to the function rconx
 		temp = x ^ rconv;   
 	end
 	else if(nk >6 && i % nk == 4) begin
@@ -57,14 +57,15 @@ end
 
 
 
-function [0:31] rotword;
+function [0:31] rotword; //rotate word
 input [0:31] x;
 begin
 		rotword={x[8:31],x[0:7]};
 end
 endfunction
 
-function [0:31] subwordx;
+//Substitute values using S-box
+function [0:31] subwordx;  
 input [0:31] a;
 begin
 subwordx[0:7]=c(a[0:7]);
@@ -338,7 +339,7 @@ end
 endfunction
 
 
-function[0:31] rconx;
+function[0:31] rconx; //round constant
 input [0:31] r; 
 begin
  case(r)
