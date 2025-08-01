@@ -1,5 +1,4 @@
 `timescale 1ns / 1ps
-
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -16,17 +15,18 @@
 // 
 // Revision:
 // Revision 0.01 - File Created
-// Revision 1.0 - Final version
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
 //module Aes_top#(parameter N=128, parameter Nr=10, parameter Nk=4)(in,key,out);
-module Aes_top(in,key,out);
+module Aes_top(reset,in,key,out);
+
+input reset;
 input[127:0] in;
 //input[N-1:0] key;
 input[127:0] key;
-output [127:0] out;
+output  [127:0] out;
 
 parameter Nr=10;
 parameter Nk=4;
@@ -43,6 +43,7 @@ key_expansion #(Nk, Nr) ke (key,fullkeys);
 AddRoundKey addrk1(in, fullkeys[128*Nr+:128],states[0]);
 //AddRoundKey addrk1(in, fullkeys[1407-:128],states[0]);
 
+
 genvar i;
 
 generate
@@ -57,11 +58,10 @@ generate
         Shift_rows shift(after_subBytes,after_shiftRows);
         //AddRoundKey ark(after_shiftRows,fullkeys[127:0],states[Nr]);
         AddRoundKey ark(after_shiftRows,fullkeys[127:0],states[Nr]);
-        
-        assign out = states[Nr];
-        
+    
 endgenerate
 
+assign out = (reset) ? 128'd0 : states[Nr];
 
 initial begin
 #10;
