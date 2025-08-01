@@ -21,21 +21,23 @@
 
 
 module Aes_top_tb;
+    reg reset;
     reg [0:127] in;
     reg [0:127] key;
     wire [0:127] out;
     
-    Aes_top dut ( in,key,out);
+    Aes_top dut (reset,in,key,out);
     
     initial begin
-//   in= 128'h32_88_31_e0_43_5a_31_37_f6_30_98_07_a8_8d_a2_34;
-//   key= 128'h2b_28_ab_09_7e_ae_f7_cf_15_d2_15_4f_16_a6_88_3c;
+    reset = 1;
+//   in= 128'h54686973206973203132336269746573;
+//   key= 128'h4d795365637265744b65793030313233;
 
     in=128'h3243f6a8885a308d313198a2e0370734;
     key=128'h2b7e151628aed2a6abf7158809cf4f3c;
      $monitor ("in= %h,key= %h, out= %h",in,key,out);
-    
+#10;
+reset=0;    
     end
 
 endmodule
-
