@@ -15,10 +15,9 @@ module Aes_top(
     // Internal state signals for the combinational path
     logic [1407:0] fullkeys;
     logic [127:0] state_rounds [0:Nr];
-    
-    // The key expansion is combinational
+
     always_ff @(posedge clk) begin
-        // Correct key expansion function is called here
+        // Key expansion function is called 
         fullkeys <= key_expansion(key);
     end
 
@@ -46,8 +45,6 @@ module Aes_top(
         out <= state_rounds[10];
     end
     
-    // The encrypt_done signal becomes a simple one-cycle pulse
-    // It's tied to a single register and start_encrypt
     logic out_reg_en;
     assign out_reg_en = start_encrypt;
 
@@ -62,18 +59,19 @@ module Aes_top(
     end
     
     //=========================================================================================
-    // Key Expansion (Corrected concatenation for fast implementation)
+    // Key Expansion 
     //=========================================================================================
     function automatic [1407:0] key_expansion(input logic [127:0] key);
         logic [31:0] W [0:43];
         integer i;
         
-        // Split key
+        // First 4 words
         W[0] = key[127:96];
         W[1] = key[95:64];
         W[2] = key[63:32];
         W[3] = key[31:0];
-
+        
+        //for next 40 words
         for (i = 4; i < 44; i = i + 1) begin
             if (i % 4 == 0)
                 W[i] = W[i-4] ^ subword(rotword(W[i-1])) ^ rcon(i/4);
@@ -81,8 +79,8 @@ module Aes_top(
                 W[i] = W[i-4] ^ W[i-1];
         end
         
-        // Reverse the concatenation to match the slicing in the main module
-        // This is the key fix that was missing
+        // Reverse the concatenation to match the slicing 
+        
         key_expansion = {
                W[0],W[1],W[2],W[3],W[4],W[5],W[6],W[7],W[8],W[9],W[10],W[11],
             W[12],W[13],W[14],W[15],W[16],W[17],W[18],W[19],W[20],W[21],W[22],
@@ -91,7 +89,7 @@ module Aes_top(
         };
     endfunction
 
-
+    //1-byte circular left shift
     function automatic [31:0] rotword(input logic [31:0] x);
         rotword = {x[23:0], x[31:24]};
     endfunction
@@ -131,7 +129,7 @@ module Aes_top(
     logic [127:0] out;
     int row, col;
     
-    // Unpack in column-major order
+    // Unpack in column-wise order
     for (col = 0; col < 4; col++)
         for (row = 0; row < 4; row++)
             state[row][col] = in[127-8*(4*col+row) -: 8];
@@ -139,7 +137,7 @@ module Aes_top(
     for (col = 0; col < 4; col++)
         for (row = 0; row < 4; row++)
             out_state[row][col] = sbox(state[row][col]);
-    // Pack column-major
+    // Pack column-wise
     for (col = 0; col < 4; col++)
         for (row = 0; row < 4; row++)
             out[127-8*(4*col+row) -: 8] = out_state[row][col];
@@ -151,7 +149,7 @@ endfunction
     logic [7:0] state[0:3][0:3], out_state[0:3][0:3];
     logic [127:0] out;
     int row, col;
-    // Unpack in column-major order
+    // Unpack in column-wise order
     for (col = 0; col < 4; col++)
         for (row = 0; row < 4; row++)
             state[row][col] = in[127-8*(4*col+row) -: 8];
@@ -159,14 +157,14 @@ endfunction
     for (row = 0; row < 4; row++)
         for (col = 0; col < 4; col++)
             out_state[row][col] = state[row][(col + row) % 4]; // left shift each row by its index
-    // Pack column-major
+    // Pack in column-wise
     for (col = 0; col < 4; col++)
         for (row = 0; row < 4; row++)
             out[127-8*(4*col+row) -: 8] = out_state[row][col];
     return out;
 endfunction
 
-// MixColumns byte multipliers
+// MixColumns multipliers
     function automatic [7:0] mb2(input [7:0] x);
         mb2 = (x[7] ? ((x << 1) ^ 8'h1b) : (x << 1));
     endfunction
@@ -180,7 +178,7 @@ endfunction
     logic [7:0] state[0:3][0:3], out_state[0:3][0:3];
     logic [127:0] out;
     int row, col;
-    // Unpack in column-major order
+    // Unpack in column-wise order
     for (col = 0; col < 4; col++)
         for (row = 0; row < 4; row++)
             state[row][col] = in[127-8*(4*col+row) -: 8];
@@ -191,7 +189,7 @@ endfunction
         out_state[2][col] = state[0][col] ^ state[1][col] ^ mb2(state[2][col]) ^ mb3(state[3][col]);
         out_state[3][col] = mb3(state[0][col]) ^ state[1][col] ^ state[2][col] ^ mb2(state[3][col]);
     end
-    // Pack column-major
+    // Pack in column-wise
     for (col = 0; col < 4; col++)
         for (row = 0; row < 4; row++)
             out[127-8*(4*col+row) -: 8] = out_state[row][col];
@@ -203,7 +201,7 @@ endfunction
     AddRoundKey = a ^ b;
 endfunction
 
-    //======================= SBox ===========================
+    //======================= S-Box ===========================
     function automatic [7:0] sbox(input logic [7:0] in);
         const byte ROM [0:255] = '{
             8'h63,8'h7C,8'h77,8'h7B,8'hF2,8'h6B,8'h6F,8'hC5,8'h30,8'h01,8'h67,8'h2B,8'hFE,8'hD7,8'hAB,8'h76,
